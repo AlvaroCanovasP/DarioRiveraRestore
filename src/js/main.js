@@ -160,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Update the center image
       centerImage.src = firstProjectElement.dataset.videoSrc;
+      centerImage.style.display = "block";
     }
 
     // Set initial horizontal line position for mobile
