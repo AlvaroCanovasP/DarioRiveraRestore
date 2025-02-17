@@ -5,6 +5,7 @@ import { initHorizontalLine } from './horizontalLine.js';
 const itemCount = projects.length;
 const virtualItemCount = itemCount * 3;
 const visibleItems = 9;
+const animationDuration = 0.5; // Animation duration in seconds
 
 // Initialize all DOM-dependent functionality
 document.addEventListener('DOMContentLoaded', () => {
@@ -179,29 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize horizontal line
     initHorizontalLine();
-
-    // Updated mobile optimization settings
-    if (window.innerWidth <= 480) {
-      container.style.scrollSnapType = 'y proximity';
-      document.querySelectorAll('.list-item').forEach(item => {
-        item.style.scrollSnapAlign = 'center';
-      });
-    }
-    
-    // Enhanced mobile scroll settings
-    container.style.scrollBehavior = 'smooth';
-    container.style.overscrollBehavior = 'none';
-    container.style.webkitOverflowScrolling = 'touch';
-    container.style.willChange = 'scroll-position';
-    container.style.backfaceVisibility = 'hidden';
-    
-    // Additional mobile optimizations
-    container.style.touchAction = 'pan-y';  // Changed from 'pan-y pinch-zoom'
-    container.style.position = 'relative';  // Ensure proper stacking context
-    container.style.zIndex = '1';          // Prevent z-index issues
-    
-    // Disable pull-to-refresh on mobile
-    document.body.style.overscrollBehavior = 'none';
   }
 
   // Add event listeners
@@ -210,40 +188,35 @@ document.addEventListener('DOMContentLoaded', () => {
     initHorizontalLine();
   });
 
-  // Add these variables at the top of the DOMContentLoaded callback
-  let lastScrollTop = 0;
-  let scrollTimeout = null;
-  let isScrolling = false;
-  let scrollEndTimeout = null;
   const isMobile = window.innerWidth <= 480;
 
-  // Separate desktop and mobile scroll handlers
+  // Mobile-specific optimizations and event handlers from File 1
   if (isMobile) {
     // Mobile scroll handler with scroll end detection
     container.addEventListener("scroll", () => {
       const scrollTop = container.scrollTop;
-      
+
       if (scrollTimeout) clearTimeout(scrollTimeout);
       if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
-      
+
       isScrolling = true;
 
       scrollEndTimeout = setTimeout(() => {
         isScrolling = false;
-        
+
         const containerHeight = container.clientHeight;
         const itemHeight = Math.floor(containerHeight / visibleItems);
         const totalRealHeight = itemHeight * itemCount;
         const currentSet = Math.floor(scrollTop / totalRealHeight);
-        
+
         if (!container.isAdjusting && (currentSet === 0 || currentSet >= 2)) {
           container.isAdjusting = true;
           const targetPosition = totalRealHeight + (scrollTop % totalRealHeight);
-          
+
           requestAnimationFrame(() => {
             container.style.scrollBehavior = 'auto';
             container.scrollTop = targetPosition;
-            
+
             requestAnimationFrame(() => {
               container.isAdjusting = false;
               container.style.scrollBehavior = 'smooth';
@@ -255,77 +228,37 @@ document.addEventListener('DOMContentLoaded', () => {
       lastScrollTop = scrollTop;
       updateCenteredItem();
     });
-  } else {
-    // Desktop scroll handler (original behavior)
-    container.addEventListener("scroll", () => {
-      const scrollTop = container.scrollTop;
-      const containerHeight = container.clientHeight;
-      const itemHeight = Math.floor(containerHeight / visibleItems);
-      const totalRealHeight = itemHeight * itemCount;
-      
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout);
-      }
 
-      scrollTimeout = setTimeout(() => {
-        const currentSet = Math.floor(scrollTop / totalRealHeight);
-        
-        if (!container.isAdjusting && (currentSet === 0 || currentSet >= 2)) {
-          container.isAdjusting = true;
-          const targetPosition = totalRealHeight + (scrollTop % totalRealHeight);
-
-          requestAnimationFrame(() => {
-            container.style.scrollBehavior = 'auto';
-            container.scrollTop = targetPosition;
-            
-            requestAnimationFrame(() => {
-              container.isAdjusting = false;
-              container.style.scrollBehavior = 'smooth';
-            });
-          });
-        }
-        
-        lastScrollTop = scrollTop;
-      }, 50);
-
-      updateCenteredItem();
-    });
-  }
-
-  // Touch event handlers (only for mobile)
-  if (isMobile) {
-    let touchStartY = 0;
-    let touchStartScroll = 0;
-    
+    // Touch event handlers (only for mobile)
     container.addEventListener('touchstart', (e) => {
       touchStartY = e.touches[0].clientY;
       touchStartScroll = container.scrollTop;
       container.isAdjusting = false;
-      
+
       if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
       if (scrollTimeout) clearTimeout(scrollTimeout);
     }, { passive: true });
 
     container.addEventListener('touchend', () => {
       if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
-      
+
       scrollEndTimeout = setTimeout(() => {
         isScrolling = false;
-        
+
         const scrollTop = container.scrollTop;
         const containerHeight = container.clientHeight;
         const itemHeight = Math.floor(containerHeight / visibleItems);
         const totalRealHeight = itemHeight * itemCount;
         const currentSet = Math.floor(scrollTop / totalRealHeight);
-        
+
         if (!container.isAdjusting && (currentSet === 0 || currentSet >= 2)) {
           container.isAdjusting = true;
           const targetPosition = totalRealHeight + (scrollTop % totalRealHeight);
-          
+
           requestAnimationFrame(() => {
             container.style.scrollBehavior = 'auto';
             container.scrollTop = targetPosition;
-            
+
             requestAnimationFrame(() => {
               container.isAdjusting = false;
               container.style.scrollBehavior = 'smooth';
@@ -334,32 +267,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }, 150);
     }, { passive: true });
+  } else {
+    container.addEventListener("wheel", (e) => {
+      if (Math.abs(e.deltaY) >= 100) {
+        e.preventDefault();
+        const scrollAmount = e.deltaY * 0.8;
+        const targetScroll = container.scrollTop + scrollAmount;
+
+        container.scrollTo({
+          top: targetScroll,
+          behavior: 'smooth'
+        });
+      }
+    }, { passive: false });
+
+    container.addEventListener("scroll", () => {
+      const scrollTop = container.scrollTop;
+      const totalRealHeight = Math.floor(container.clientHeight / visibleItems) * itemCount;
+
+      if (scrollTop < totalRealHeight / 2) {
+        container.scrollTop = scrollTop + totalRealHeight;
+      } else if (scrollTop > totalRealHeight * 2) {
+        container.scrollTop = scrollTop - totalRealHeight;
+      }
+
+      updateCenteredItem();
+    });
   }
 
-  // Modify the wheel event handler for better mobile support
-  container.addEventListener("wheel", (e) => {
-    if (Math.abs(e.deltaY) >= 100 && !container.isScrolling) {
-      e.preventDefault();
-      container.isScrolling = true;
-      
-      const scrollAmount = e.deltaY * 0.8;
-      const targetScroll = container.scrollTop + scrollAmount;
-
-      container.scrollTo({
-        top: targetScroll,
-        behavior: 'smooth'
-      });
-
-      // Reset the scrolling flag after animation
-      setTimeout(() => {
-        container.isScrolling = false;
-      }, 200);
-    }
-  }, { passive: false });
-
-  // Wait for a small delay to ensure proper layout calculation
+  // Common initialization for both mobile and desktop
   setTimeout(() => {
     initializeContent();
     updateCenteredItem();
-  }, window.innerWidth <= 480 ? 500 : 0); // Add delay for mobile devices
+  }, isMobile ? 500 : 0); // Add delay for mobile devices to ensure proper layout calculation
+
+  // Initialize horizontal line
+  initHorizontalLine();
 });
+
+// Add these variables at the top of the DOMContentLoaded callback
+let lastScrollTop = 0;
+let scrollTimeout = null;
+let scrollEndTimeout = null;
+let isScrolling = false;
+let touchStartY = 0;
+let touchStartScroll = 0;
