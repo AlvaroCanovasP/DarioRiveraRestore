@@ -215,92 +215,126 @@ document.addEventListener('DOMContentLoaded', () => {
   let scrollTimeout = null;
   let isScrolling = false;
   let scrollEndTimeout = null;
+  const isMobile = window.innerWidth <= 480;
 
-  // Modified scroll event handler with scroll end detection
-  container.addEventListener("scroll", () => {
-    const scrollTop = container.scrollTop;
-    
-    // Clear existing timeouts
-    if (scrollTimeout) clearTimeout(scrollTimeout);
-    if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
-    
-    isScrolling = true;
+  // Separate desktop and mobile scroll handlers
+  if (isMobile) {
+    // Mobile scroll handler with scroll end detection
+    container.addEventListener("scroll", () => {
+      const scrollTop = container.scrollTop;
+      
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
+      
+      isScrolling = true;
 
-    // Set a timeout to detect when scrolling ends
-    scrollEndTimeout = setTimeout(() => {
-      isScrolling = false;
-      
-      // Only reposition when scrolling has completely stopped
-      const containerHeight = container.clientHeight;
-      const itemHeight = Math.floor(containerHeight / visibleItems);
-      const totalRealHeight = itemHeight * itemCount;
-      const currentSet = Math.floor(scrollTop / totalRealHeight);
-      
-      // Check if we need to reposition
-      if (!container.isAdjusting && (currentSet === 0 || currentSet >= 2)) {
-        container.isAdjusting = true;
-        const targetPosition = totalRealHeight + (scrollTop % totalRealHeight);
+      scrollEndTimeout = setTimeout(() => {
+        isScrolling = false;
         
-        // Use RAF for smooth transition after scroll has settled
-        requestAnimationFrame(() => {
-          container.style.scrollBehavior = 'auto';
-          container.scrollTop = targetPosition;
+        const containerHeight = container.clientHeight;
+        const itemHeight = Math.floor(containerHeight / visibleItems);
+        const totalRealHeight = itemHeight * itemCount;
+        const currentSet = Math.floor(scrollTop / totalRealHeight);
+        
+        if (!container.isAdjusting && (currentSet === 0 || currentSet >= 2)) {
+          container.isAdjusting = true;
+          const targetPosition = totalRealHeight + (scrollTop % totalRealHeight);
           
           requestAnimationFrame(() => {
-            container.isAdjusting = false;
-            container.style.scrollBehavior = 'smooth';
+            container.style.scrollBehavior = 'auto';
+            container.scrollTop = targetPosition;
+            
+            requestAnimationFrame(() => {
+              container.isAdjusting = false;
+              container.style.scrollBehavior = 'smooth';
+            });
           });
-        });
-      }
-    }, 150); // Wait for scroll to completely settle
+        }
+      }, 150);
 
-    lastScrollTop = scrollTop;
-    updateCenteredItem();
-  });
-
-  // Improved touch handling
-  let touchStartY = 0;
-  let touchStartScroll = 0;
-  
-  container.addEventListener('touchstart', (e) => {
-    touchStartY = e.touches[0].clientY;
-    touchStartScroll = container.scrollTop;
-    container.isAdjusting = false;
-    
-    if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
-    if (scrollTimeout) clearTimeout(scrollTimeout);
-  }, { passive: true });
-
-  container.addEventListener('touchend', () => {
-    // Reset the scroll end detection after touch
-    if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
-    
-    scrollEndTimeout = setTimeout(() => {
-      isScrolling = false;
-      
-      // Recheck position after touch end and scroll settle
+      lastScrollTop = scrollTop;
+      updateCenteredItem();
+    });
+  } else {
+    // Desktop scroll handler (original behavior)
+    container.addEventListener("scroll", () => {
       const scrollTop = container.scrollTop;
       const containerHeight = container.clientHeight;
       const itemHeight = Math.floor(containerHeight / visibleItems);
       const totalRealHeight = itemHeight * itemCount;
-      const currentSet = Math.floor(scrollTop / totalRealHeight);
       
-      if (!container.isAdjusting && (currentSet === 0 || currentSet >= 2)) {
-        container.isAdjusting = true;
-        const targetPosition = totalRealHeight + (scrollTop % totalRealHeight);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+
+      scrollTimeout = setTimeout(() => {
+        const currentSet = Math.floor(scrollTop / totalRealHeight);
         
-        requestAnimationFrame(() => {
-          container.style.scrollBehavior = 'auto';
-          container.scrollTop = targetPosition;
+        if (!container.isAdjusting && (currentSet === 0 || currentSet >= 2)) {
+          container.isAdjusting = true;
+          const targetPosition = totalRealHeight + (scrollTop % totalRealHeight);
+
+          requestAnimationFrame(() => {
+            container.style.scrollBehavior = 'auto';
+            container.scrollTop = targetPosition;
+            
+            requestAnimationFrame(() => {
+              container.isAdjusting = false;
+              container.style.scrollBehavior = 'smooth';
+            });
+          });
+        }
+        
+        lastScrollTop = scrollTop;
+      }, 50);
+
+      updateCenteredItem();
+    });
+  }
+
+  // Touch event handlers (only for mobile)
+  if (isMobile) {
+    let touchStartY = 0;
+    let touchStartScroll = 0;
+    
+    container.addEventListener('touchstart', (e) => {
+      touchStartY = e.touches[0].clientY;
+      touchStartScroll = container.scrollTop;
+      container.isAdjusting = false;
+      
+      if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    }, { passive: true });
+
+    container.addEventListener('touchend', () => {
+      if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
+      
+      scrollEndTimeout = setTimeout(() => {
+        isScrolling = false;
+        
+        const scrollTop = container.scrollTop;
+        const containerHeight = container.clientHeight;
+        const itemHeight = Math.floor(containerHeight / visibleItems);
+        const totalRealHeight = itemHeight * itemCount;
+        const currentSet = Math.floor(scrollTop / totalRealHeight);
+        
+        if (!container.isAdjusting && (currentSet === 0 || currentSet >= 2)) {
+          container.isAdjusting = true;
+          const targetPosition = totalRealHeight + (scrollTop % totalRealHeight);
           
           requestAnimationFrame(() => {
-            container.isAdjusting = false;
-            container.style.scrollBehavior = 'smooth';
+            container.style.scrollBehavior = 'auto';
+            container.scrollTop = targetPosition;
+            
+            requestAnimationFrame(() => {
+              container.isAdjusting = false;
+              container.style.scrollBehavior = 'smooth';
+            });
           });
-        });
-      }
-    }, 150); // Wait for any momentum scrolling to finish
-  }, { passive: true });
+        }
+      }, 150);
+    }, { passive: true });
+  }
 
   // Modify the wheel event handler for better mobile support
   container.addEventListener("wheel", (e) => {
