@@ -1,4 +1,5 @@
 import { projects } from '../data/projects.js';
+import { initHorizontalLine } from './horizontalLine.js';
 
 // Project Information Functions
 // Cache DOM elements at the start
@@ -210,6 +211,14 @@ function setupControlsVisibility() {
 
 // Main Initialization
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize horizontal line
+    initHorizontalLine();
+
+    // Add resize event listener for horizontal line
+    window.addEventListener('resize', () => {
+        initHorizontalLine();
+    });
+
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = parseInt(urlParams.get('id'));
     const project = projects[projectId];

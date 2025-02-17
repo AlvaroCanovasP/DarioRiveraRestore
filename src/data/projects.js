@@ -6,7 +6,7 @@ export const projects = [
     producer: "We Are CP",
     producerUrl: "https://www.wearecp.es/",
     image: "src/img/Still_manifesto_UOC.webp",
-    thumbnail: "src/img/gifs/Loop_Manifesto_UOC_Clip.webm",
+    thumbnail: "src/img/gifs/Manifesto-Uoc.webm",
     videoId: "1030260797"
   },
   {
@@ -16,7 +16,7 @@ export const projects = [
     producer: "We Are CP",
     producerUrl: "https://www.wearecp.es/ ",
     image: "src/img/Still_Universidad_UOC.webp",
-    thumbnail: "src/img/gifs/Loop_Universidad_UOC_Clip.webm",
+    thumbnail: "src/img/gifs/Universidad-Uoc.webm",
     videoId: "1047977263"
   },
   {
@@ -26,7 +26,7 @@ export const projects = [
     producer: "Topo Colectivo",
     producerUrl: "https://www.topocolectivo.com/",
     image: "src/img/Still_MaldeOjo.webp",
-    thumbnail: "src/img/gifs/Loop_MaldeOjo_Anaju_Clip.webm",
+    thumbnail: "src/img/gifs/Mal-de-Ojo.webm",
     videoId: "883179965"
   },
   {
@@ -44,7 +44,7 @@ export const projects = [
     producer: "Topo Colectivo",
     producerUrl: "https://www.topocolectivo.com/",
     image: "src/img/Still_Kassandra.webp",
-    thumbnail: "src/img/gifs/Loop_Kassandra_Quevedo_Clip.webm",
+    thumbnail: "src/img/gifs/Kassandra.webm",
     videoId: "1047964179"
   },
   {
@@ -54,7 +54,7 @@ export const projects = [
     producer: "",
     producerUrl: "",
     image: "src/img/Still_Quevoyahacer.webp",
-    thumbnail: "src/img/gifs/gift_qvah_h264.webm",
+    thumbnail: "src/img/gifs/qvah-Shego.webm",
     videoId: "785184730"
   },
   {
@@ -72,7 +72,7 @@ export const projects = [
     producer: "Topo Colectivo",
     producerUrl: "https://www.topocolectivo.com/",
     image: "src/img/1_47_Still_LaCruz.webp",
-    thumbnail: "src/img/gifs/Loop_LaCruz_LiaKali_Clip.webm",
+    thumbnail: "src/img/gifs/La-Cruz.webm",
     videoId: "987110651"
   },
   {
@@ -82,7 +82,7 @@ export const projects = [
     producer: "Menta Tv",
     producerUrl: "https://menta.tv/",
     image: "src/img/Still_Buenisssima.webp",
-    thumbnail: "src/img/gifs/Gift_Buenisssima_h264.webm",
+    thumbnail: "src/img/gifs/Buenisima.webm",
     videoId: "840754974"
   },
   {
@@ -92,7 +92,7 @@ export const projects = [
     producer: "Vampire",
     producerUrl: "https://wearevampire.com/",
     image: "src/img/Still_Trailer_MusicMakers.webp",
-    thumbnail: "src/img/gifs/gift_musicmakers_h264.webm",
+    thumbnail: "src/img/gifs/Music-Makers.webm",
     videoId: "1027232038"
   },
   {
@@ -102,7 +102,7 @@ export const projects = [
     producer: "",
     producerUrl: "",
     image: "src/img/Still_Shego.webp",
-    thumbnail: "src/img/gifs/Loop_Lucky_Shego_Clip.webm",
+    thumbnail: "src/img/gifs/Lucky-Shego.webm",
     videoId: "764116724"
   },
   {
@@ -112,17 +112,7 @@ export const projects = [
     producer: "",
     producerUrl: "",
     image: "src/img/Still_SoulBlackOut.webp",
-    thumbnail: "src/img/gifs/Gift_SoulBlackOut_h264.webm",
+    thumbnail: "src/img/gifs/Soul-Blackout.webm",
     videoId: "816677472"
-  },
-  {
-    title: "BLABLA",
-    director: "Ester G. Mera",
-    directorUrl: "https://estergmera.com/",
-    producer: "We Are CP",
-    producerUrl: "https://www.wearecp.es/",
-    image: "src/img/Still_Universidad_UOC.webp",
-    thumbnail: "src/img/gifs/Loop_Universidad_UOC_Clip.webm",
-    videoId: "1047977263"
   }
 ];

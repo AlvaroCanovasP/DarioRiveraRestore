@@ -1,10 +1,10 @@
 import { projects } from '../data/projects.js';
+import { initHorizontalLine } from './horizontalLine.js';
 
 // Configuration
 const itemCount = projects.length;
 const virtualItemCount = itemCount * 3;
 const visibleItems = 9;
-const animationDuration = 0.5; // Animation duration in seconds
 
 // Initialize all DOM-dependent functionality
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,7 +21,21 @@ document.addEventListener('DOMContentLoaded', () => {
   centerImage.playsInline = true;
   centerImage.controls = false;
   centerImage.style.cursor = 'pointer';
-  centerImage.style.display = 'none'; // Hide initially
+  centerImage.style.display = 'none';
+  centerImage.setAttribute('playsinline', ''); // Add explicit playsinline attribute
+  centerImage.setAttribute('webkit-playsinline', ''); // Add Safari-specific attribute
+
+  // Add event listeners for Safari
+  centerImage.addEventListener('loadedmetadata', () => {
+    centerImage.play().catch(e => console.log('Playback failed:', e));
+  });
+
+  centerImage.addEventListener('timeupdate', () => {
+    if (centerImage.currentTime >= centerImage.duration - 0.1) {
+      centerImage.currentTime = 0;
+    }
+  });
+
   document.querySelector('.image-container').appendChild(centerImage);
 
   // Add click event listener to centerImage
@@ -163,26 +177,124 @@ document.addEventListener('DOMContentLoaded', () => {
       centerImage.style.display = "block";
     }
 
-    // Set initial horizontal line position for mobile
+    // Initialize horizontal line
+    initHorizontalLine();
+
+    // Updated mobile optimization settings
     if (window.innerWidth <= 480) {
-      const initialCenteredItem = findCenteredItem();
-      if (initialCenteredItem) {
-        const itemRect = initialCenteredItem.getBoundingClientRect();
-        const itemCenter = itemRect.top + itemRect.height / 2;
-        const horizontalLine = document.querySelector('.horizontal-line');
-        if (horizontalLine) {
-          horizontalLine.style.top = `${itemCenter}px`;
-        }
-      }
+      container.style.scrollSnapType = 'y proximity';
+      document.querySelectorAll('.list-item').forEach(item => {
+        item.style.scrollSnapAlign = 'center';
+      });
     }
+    
+    // Enhanced mobile scroll settings
+    container.style.scrollBehavior = 'smooth';
+    container.style.overscrollBehavior = 'none';
+    container.style.webkitOverflowScrolling = 'touch';
+    container.style.willChange = 'scroll-position';
+    container.style.backfaceVisibility = 'hidden';
+    
+    // Additional mobile optimizations
+    container.style.touchAction = 'pan-y';  // Changed from 'pan-y pinch-zoom'
+    container.style.position = 'relative';  // Ensure proper stacking context
+    container.style.zIndex = '1';          // Prevent z-index issues
+    
+    // Disable pull-to-refresh on mobile
+    document.body.style.overscrollBehavior = 'none';
   }
 
   // Add event listeners
-  window.addEventListener('resize', updateItemHeights);
+  window.addEventListener('resize', () => {
+    updateItemHeights();
+    initHorizontalLine();
+  });
 
+  // Add these variables at the top of the DOMContentLoaded callback
+  let lastScrollTop = 0;
+  let scrollTimeout = null;
+
+  // Modified scroll event handler with improved mobile handling
+  container.addEventListener("scroll", () => {
+    const scrollTop = container.scrollTop;
+    const containerHeight = container.clientHeight;
+    const itemHeight = Math.floor(containerHeight / visibleItems);
+    const totalRealHeight = itemHeight * itemCount;
+    
+    // Clear any pending scroll timeout
+    if (scrollTimeout) {
+      clearTimeout(scrollTimeout);
+    }
+
+    // Shorter debounce time for mobile
+    const debounceTime = window.innerWidth <= 480 ? 20 : 50;
+
+    scrollTimeout = setTimeout(() => {
+      const currentSet = Math.floor(scrollTop / totalRealHeight);
+      
+      if (!container.isAdjusting && (currentSet === 0 || currentSet >= 2)) {
+        container.isAdjusting = true;
+        
+        const scrollingDown = scrollTop > lastScrollTop;
+        const targetPosition = totalRealHeight + (scrollTop % totalRealHeight);
+
+        // Use RAF for smoother transitions
+        requestAnimationFrame(() => {
+          // Temporarily disable smooth scrolling during adjustment
+          container.style.scrollBehavior = 'auto';
+          container.scrollTop = targetPosition;
+          
+          // Re-enable smooth scrolling after a very short delay
+          setTimeout(() => {
+            container.isAdjusting = false;
+            container.style.scrollBehavior = 'smooth';
+          }, 10);
+        });
+      }
+      
+      lastScrollTop = scrollTop;
+    }, debounceTime);
+
+    updateCenteredItem();
+  });
+
+  // Improved touch handling
+  let touchStartY = 0;
+  let touchStartScroll = 0;
+  let isMomentumScrolling = false;
+  
+  container.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
+    touchStartScroll = container.scrollTop;
+    isMomentumScrolling = false;
+    container.isAdjusting = false;
+    
+    if (scrollTimeout) {
+      clearTimeout(scrollTimeout);
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchmove', (e) => {
+    if (isMomentumScrolling) return;
+    const touchDelta = touchStartY - e.touches[0].clientY;
+    if (Math.abs(touchDelta) > 5) {
+      container.isAdjusting = false;
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchend', () => {
+    isMomentumScrolling = true;
+    setTimeout(() => {
+      isMomentumScrolling = false;
+    }, 100);
+  }, { passive: true });
+
+  // Modify the wheel event handler for better mobile support
   container.addEventListener("wheel", (e) => {
-    if (Math.abs(e.deltaY) >= 100) {
+    if (Math.abs(e.deltaY) >= 100 && !container.isScrolling) {
       e.preventDefault();
+      container.isScrolling = true;
+      
       const scrollAmount = e.deltaY * 0.8;
       const targetScroll = container.scrollTop + scrollAmount;
 
@@ -190,21 +302,13 @@ document.addEventListener('DOMContentLoaded', () => {
         top: targetScroll,
         behavior: 'smooth'
       });
+
+      // Reset the scrolling flag after animation
+      setTimeout(() => {
+        container.isScrolling = false;
+      }, 200);
     }
   }, { passive: false });
-
-  container.addEventListener("scroll", () => {
-    const scrollTop = container.scrollTop;
-    const totalRealHeight = Math.floor(container.clientHeight / visibleItems) * itemCount;
-
-    if (scrollTop < totalRealHeight / 2) {
-      container.scrollTop = scrollTop + totalRealHeight;
-    } else if (scrollTop > totalRealHeight * 2) {
-      container.scrollTop = scrollTop - totalRealHeight;
-    }
-
-    updateCenteredItem();
-  });
 
   // Wait for a small delay to ensure proper layout calculation
   setTimeout(() => {

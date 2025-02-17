@@ -129,9 +129,29 @@ html {
 
 .image-container {
   grid-column: 1;
-  width: 100%;
+  width: calc(100% - 10rem);
+  margin: 0 auto;
   display: flex;
   justify-content: center;
+}
+
+#centerImage {
+  width: 100%;
+  height: auto;
+  opacity: 0;
+  animation: fadeInImage 1s ease forwards;
+  animation-delay: 1.1s;
+  will-change: opacity;
+}
+
+@keyframes fadeInImage {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* Cross lines */
@@ -149,6 +169,10 @@ html {
   left: 1.25rem;
   top: 50%;
   transform: translateY(-50%) scaleX(0);
+  display: block;
+}
+
+.horizontal-line.animate {
   animation: drawHorizontal 1s ease forwards;
 }
 
@@ -229,12 +253,11 @@ html {
 }
 
 .list-item-text {
-  padding: 20px 0 20px 0;
+  padding: 20px 30px 20px 30px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
 }
 
 .list-item.centered .list-item-text {
-  padding: 0px 30px 0px 30px;
   background: white;
   box-shadow: 0 0 20px 20px white;
 }
@@ -249,27 +272,6 @@ html {
   max-height: 60%;
   width: auto;
   object-fit: contain;
-}
-
-#centerImage {
-  max-width: 80%;
-  height: auto;
-  object-fit: contain;
-  display: none;
-  opacity: 0;
-  animation: fadeInImage 1s ease forwards;
-  animation-delay: 1.1s;
-  will-change: opacity;
-}
-
-@keyframes fadeInImage {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
 }
 
 .right-space {
@@ -404,6 +406,7 @@ html {
     left: 1.25rem;
     transform: translateY(-50%);
     position: fixed;
+    display: none;
   }
 
   .bottom-nav {
@@ -413,11 +416,10 @@ html {
   }
 
   .list-item-text {
-    padding: 10px 0 10px 0;
+    padding: 10px 15px 10px 15px;
   }
 
   .list-item.centered .list-item-text {
-    padding: 0px 15px 0px 15px;
     background: white;
     box-shadow: 0 0 10px 10px white;
   }
