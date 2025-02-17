@@ -269,9 +269,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   } else {
     container.addEventListener("wheel", (e) => {
-      if (Math.abs(e.deltaY) >= 100) {
+      if (Math.abs(e.deltaY) >= 50) {
         e.preventDefault();
-        const scrollAmount = e.deltaY * 0.8;
+        const scrollAmount = e.deltaY * 1.6;
         const targetScroll = container.scrollTop + scrollAmount;
 
         container.scrollTo({
