@@ -213,80 +213,93 @@ document.addEventListener('DOMContentLoaded', () => {
   // Add these variables at the top of the DOMContentLoaded callback
   let lastScrollTop = 0;
   let scrollTimeout = null;
+  let isScrolling = false;
+  let scrollEndTimeout = null;
 
-  // Modified scroll event handler with improved mobile handling
+  // Modified scroll event handler with scroll end detection
   container.addEventListener("scroll", () => {
     const scrollTop = container.scrollTop;
-    const containerHeight = container.clientHeight;
-    const itemHeight = Math.floor(containerHeight / visibleItems);
-    const totalRealHeight = itemHeight * itemCount;
     
-    // Clear any pending scroll timeout
-    if (scrollTimeout) {
-      clearTimeout(scrollTimeout);
-    }
+    // Clear existing timeouts
+    if (scrollTimeout) clearTimeout(scrollTimeout);
+    if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
+    
+    isScrolling = true;
 
-    // Shorter debounce time for mobile
-    const debounceTime = window.innerWidth <= 480 ? 20 : 50;
-
-    scrollTimeout = setTimeout(() => {
+    // Set a timeout to detect when scrolling ends
+    scrollEndTimeout = setTimeout(() => {
+      isScrolling = false;
+      
+      // Only reposition when scrolling has completely stopped
+      const containerHeight = container.clientHeight;
+      const itemHeight = Math.floor(containerHeight / visibleItems);
+      const totalRealHeight = itemHeight * itemCount;
       const currentSet = Math.floor(scrollTop / totalRealHeight);
       
+      // Check if we need to reposition
       if (!container.isAdjusting && (currentSet === 0 || currentSet >= 2)) {
         container.isAdjusting = true;
-        
-        const scrollingDown = scrollTop > lastScrollTop;
         const targetPosition = totalRealHeight + (scrollTop % totalRealHeight);
-
-        // Use RAF for smoother transitions
+        
+        // Use RAF for smooth transition after scroll has settled
         requestAnimationFrame(() => {
-          // Temporarily disable smooth scrolling during adjustment
           container.style.scrollBehavior = 'auto';
           container.scrollTop = targetPosition;
           
-          // Re-enable smooth scrolling after a very short delay
-          setTimeout(() => {
+          requestAnimationFrame(() => {
             container.isAdjusting = false;
             container.style.scrollBehavior = 'smooth';
-          }, 10);
+          });
         });
       }
-      
-      lastScrollTop = scrollTop;
-    }, debounceTime);
+    }, 150); // Wait for scroll to completely settle
 
+    lastScrollTop = scrollTop;
     updateCenteredItem();
   });
 
   // Improved touch handling
   let touchStartY = 0;
   let touchStartScroll = 0;
-  let isMomentumScrolling = false;
   
   container.addEventListener('touchstart', (e) => {
     touchStartY = e.touches[0].clientY;
     touchStartScroll = container.scrollTop;
-    isMomentumScrolling = false;
     container.isAdjusting = false;
     
-    if (scrollTimeout) {
-      clearTimeout(scrollTimeout);
-    }
-  }, { passive: true });
-
-  container.addEventListener('touchmove', (e) => {
-    if (isMomentumScrolling) return;
-    const touchDelta = touchStartY - e.touches[0].clientY;
-    if (Math.abs(touchDelta) > 5) {
-      container.isAdjusting = false;
-    }
+    if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
+    if (scrollTimeout) clearTimeout(scrollTimeout);
   }, { passive: true });
 
   container.addEventListener('touchend', () => {
-    isMomentumScrolling = true;
-    setTimeout(() => {
-      isMomentumScrolling = false;
-    }, 100);
+    // Reset the scroll end detection after touch
+    if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
+    
+    scrollEndTimeout = setTimeout(() => {
+      isScrolling = false;
+      
+      // Recheck position after touch end and scroll settle
+      const scrollTop = container.scrollTop;
+      const containerHeight = container.clientHeight;
+      const itemHeight = Math.floor(containerHeight / visibleItems);
+      const totalRealHeight = itemHeight * itemCount;
+      const currentSet = Math.floor(scrollTop / totalRealHeight);
+      
+      if (!container.isAdjusting && (currentSet === 0 || currentSet >= 2)) {
+        container.isAdjusting = true;
+        const targetPosition = totalRealHeight + (scrollTop % totalRealHeight);
+        
+        requestAnimationFrame(() => {
+          container.style.scrollBehavior = 'auto';
+          container.scrollTop = targetPosition;
+          
+          requestAnimationFrame(() => {
+            container.isAdjusting = false;
+            container.style.scrollBehavior = 'smooth';
+          });
+        });
+      }
+    }, 150); // Wait for any momentum scrolling to finish
   }, { passive: true });
 
   // Modify the wheel event handler for better mobile support
