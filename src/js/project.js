@@ -125,7 +125,7 @@ function initializeVideoPlayer(videoId) {
                     requestAnimationFrame(() => {
                         DOM.videoContainer.style.opacity = '1';
                     });
-                }, 500);
+                }, 900);
             }
         } catch (error) {
             console.error('Error fetching video metadata:', error);
