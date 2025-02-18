@@ -5,7 +5,6 @@ import { initHorizontalLine } from './horizontalLine.js';
 const itemCount = projects.length;
 const virtualItemCount = itemCount * 3;
 const visibleItems = 9;
-const animationDuration = 0.5; // Animation duration in seconds
 
 // Initialize all DOM-dependent functionality
 document.addEventListener('DOMContentLoaded', () => {
