@@ -267,19 +267,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 150);
     }, { passive: true });
   } else {
-    container.addEventListener("wheel", (e) => {
-      if (Math.abs(e.deltaY) >= 50) {
-        e.preventDefault();
-        const scrollAmount = e.deltaY * 1.6;
-        const targetScroll = container.scrollTop + scrollAmount;
-
-        container.scrollTo({
-          top: targetScroll,
-          behavior: 'smooth'
-        });
-      }
-    }, { passive: false });
-
     container.addEventListener("scroll", () => {
       const scrollTop = container.scrollTop;
       const totalRealHeight = Math.floor(container.clientHeight / visibleItems) * itemCount;
