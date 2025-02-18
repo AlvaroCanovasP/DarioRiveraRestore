@@ -267,15 +267,39 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 150);
     }, { passive: true });
   } else {
+    let isScrolling = false;
+    let scrollTimeout;
+
     container.addEventListener("scroll", () => {
       const scrollTop = container.scrollTop;
       const totalRealHeight = Math.floor(container.clientHeight / visibleItems) * itemCount;
 
+      // Mark that we're scrolling
+      isScrolling = true;
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+
+      // Handle infinite scroll
       if (scrollTop < totalRealHeight / 2) {
         container.scrollTop = scrollTop + totalRealHeight;
       } else if (scrollTop > totalRealHeight * 2) {
         container.scrollTop = scrollTop - totalRealHeight;
       }
+
+      // Set a timeout to snap to nearest center after scrolling stops
+      scrollTimeout = setTimeout(() => {
+        isScrolling = false;
+        const centeredItem = findCenteredItem();
+        if (centeredItem) {
+          const containerHeight = container.clientHeight;
+          const itemHeight = centeredItem.offsetHeight;
+          const targetPosition = centeredItem.offsetTop - (containerHeight - itemHeight) / 2;
+          
+          container.scrollTo({
+            top: targetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 150); // Adjust this delay as needed
 
       updateCenteredItem();
     });
