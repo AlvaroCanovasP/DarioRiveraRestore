@@ -275,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         container.scrollTo({
           top: targetScroll,
-          behavior: 'auto'
+          behavior: 'smooth'
         });
       }
     }, { passive: false });
